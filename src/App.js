@@ -1,25 +1,49 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import BookList from './Components/BookList';
+import BookDetails from './Components/BookDetails';
+import Cart from './Components/Cart';
+import Checkout from './Components/Checkout';
+import { fetchBooks } from './services/bookService';
 
-function App() {
+const App = () => {
+  const [books, setBooks] = useState([]);
+  const [cartItems, setCartItems] = useState([]);
+
+  useEffect(() => {
+    const loadBooks = async () => {
+      const booksData = await fetchBooks('react');
+      setBooks(booksData);
+    };
+    loadBooks();
+  }, []);
+
+  const addToCart = (book) => {
+    setCartItems((prevItems) => [...prevItems, book]);
+  };
+
+  const removeFromCart = (id) => {
+    setCartItems(cartItems.filter((item) => item.id !== id));
+  };
+
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <nav>
+        <Link to="/">Home</Link>
+        <Link to="/cart">Cart ({cartItems.length})</Link>
+      </nav>
+      <Routes>
+        <Route path="/" element={<BookList books={books} addToCart={addToCart} />} />
+        <Route path="/book/:id" element={<BookDetails addToCart={addToCart} />} />
+        <Route path="/cart" element={<Cart cartItems={cartItems} removeFromCart={removeFromCart} />} />
+        <Route path="/checkout" element={<Checkout cartItems={cartItems} clearCart={clearCart} />} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;
